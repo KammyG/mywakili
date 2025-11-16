@@ -104,7 +104,11 @@ USE_TZ = True
 
 # Static files
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files (for user uploads like lawyer photos)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
@@ -132,4 +136,15 @@ SIMPLE_JWT = {
 # ===========================
 # CORS (React frontend)
 # ===========================
-CORS_ALLOW_ALL_ORIGINS = True  # You can later restrict this in production
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # Vite default port
+    "http://localhost:3000",  # Alternative React port
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:3000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+# Allow all origins in development (restrict in production)
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True

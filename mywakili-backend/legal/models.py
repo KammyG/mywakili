@@ -12,6 +12,8 @@ class LegalArticle(models.Model):
         ('family', 'Family Law'),
         ('civil', 'Civil Law'),
         ('rights', 'Human Rights'),
+        ('employment', 'Employment Law'),
+        ('property', 'Property Law'),
     ]
 
     title = models.CharField(max_length=255)
@@ -20,6 +22,10 @@ class LegalArticle(models.Model):
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     author = models.CharField(max_length=150, default="Admin")
     publish_date = models.DateField(auto_now_add=True)
+    is_constitution = models.BooleanField(default=False, help_text="Mark if this is the Constitution of Kenya")
+
+    class Meta:
+        ordering = ['-publish_date']
 
     def __str__(self):
         return self.title

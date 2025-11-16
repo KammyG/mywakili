@@ -4,21 +4,31 @@ from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
+    password_confirm = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'password')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'password', 'password_confirm', 'user_type')
+
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
 
     def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            first_name=validated_data.get('first_name', ''),
-            last_name=validated_data.get('last_name', '')
-        )
-        user.set_password(validated_data['password'])
+        validated_data.pop('password_confirm')
+        password = validated_data.pop('password')
+        user = User(**validated_data)
+        user.set_password(password)
         user.save()
         return user
     
+class SimpleUserSerializer(serializers.ModelSerializer):
+    """Simple user serializer for nested representations"""
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -27,5 +37,5 @@ class UserSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'phone_number', 'location', 'user_type', 'bio')
 

@@ -1,8 +1,8 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Booking, AvailabilitySlot
-from .serializers import BookingSerializer, AvailabilitySlotSerializer
+from .models import Booking, AvailabilitySlot, Payment
+from .serializers import BookingSerializer, AvailabilitySlotSerializer, PaymentSerializer
 
 
 # Create booking
@@ -82,3 +82,73 @@ class LawyerAvailabilityList(generics.ListAPIView):
     def get_queryset(self):
         lawyer_id = self.kwargs['lawyer_id']
         return AvailabilitySlot.objects.filter(lawyer_id=lawyer_id)
+
+
+# Payment Processing
+class ProcessPaymentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, booking_id):
+        try:
+            booking = Booking.objects.get(id=booking_id, user=request.user)
+        except Booking.DoesNotExist:
+            return Response({"error": "Booking not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        payment_method = request.data.get("payment_method")
+        payment_details = request.data.get("payment_details", {})
+
+        if not payment_method:
+            return Response({"error": "Payment method is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create or update payment
+        payment, created = Payment.objects.get_or_create(
+            booking=booking,
+            defaults={
+                "amount": booking.lawyer.consultation_fee,
+                "payment_method": payment_method,
+                "payment_details": payment_details,
+                "status": "processing"
+            }
+        )
+
+        if not created:
+            payment.payment_details = payment_details
+            payment.status = "processing"
+            payment.save()
+
+        # Simulate payment processing (in production, integrate with payment gateway)
+        # For now, we'll mark it as completed after a short delay
+        # In production, you'd use webhooks or polling to check payment status
+        
+        # Update booking payment status
+        booking.payment_status = "pending"
+        booking.save()
+
+        return Response({
+            "message": "Payment processing initiated",
+            "payment_id": payment.id,
+            "status": payment.status
+        }, status=status.HTTP_200_OK)
+
+
+class ConfirmPaymentView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(id=payment_id, booking__user=request.user)
+        except Payment.DoesNotExist:
+            return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # In production, verify payment with payment gateway
+        # For now, we'll just mark it as completed
+        payment.status = "completed"
+        payment.booking.payment_status = "paid"
+        payment.booking.save()
+        payment.save()
+
+        return Response({
+            "message": "Payment confirmed",
+            "payment_id": payment.id,
+            "status": payment.status
+        }, status=status.HTTP_200_OK)

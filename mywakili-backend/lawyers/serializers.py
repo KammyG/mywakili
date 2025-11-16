@@ -17,17 +17,34 @@ class SimpleUserSerializer(serializers.ModelSerializer):
 class LawyerProfileListSerializer(serializers.ModelSerializer):
     user = SimpleUserSerializer(read_only=True)
     categories = LawCategorySerializer(many=True, read_only=True)
+    full_name = serializers.CharField(source="full_name", read_only=True)
+    name = serializers.SerializerMethodField()
+    specialty = serializers.SerializerMethodField()
 
     class Meta:
         model = LawyerProfile
         fields = (
-            "id", "user", "photo", "bio", "categories", "location",
-            "years_experience", "languages", "consultation_fee", "rating", "verified"
+            "id", "user", "full_name", "name", "photo", "bio", "categories", 
+            "location", "years_experience", "languages", "consultation_fee", 
+            "rating", "verified", "specialty"
         )
 
+    def get_name(self, obj):
+        return obj.full_name
+
+    def get_specialty(self, obj):
+        if obj.categories.exists():
+            return obj.categories.first().name
+        return "General Law"
+
 class LawyerProfileDetailSerializer(LawyerProfileListSerializer):
-    # same as list for now; extend if needed
-    pass
+    # Include availability slots in detail view
+    availability = serializers.SerializerMethodField()
+    
+    def get_availability(self, obj):
+        from bookings.serializers import AvailabilitySlotSerializer
+        slots = obj.availability.all()
+        return AvailabilitySlotSerializer(slots, many=True).data
 
 class LawyerProfileCreateSerializer(serializers.ModelSerializer):
     # create serializer expects categories ids

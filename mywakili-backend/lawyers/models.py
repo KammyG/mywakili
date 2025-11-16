@@ -41,5 +41,12 @@ class LawyerProfile(models.Model):
     class Meta:
         ordering = ["-rating", "-years_experience", "user__username"]
 
+    @property
+    def full_name(self):
+        """Get the full name of the lawyer"""
+        if self.user.get_full_name():
+            return self.user.get_full_name()
+        return self.user.username
+
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username} — {self.location or 'N/A'}"
+        return f"{self.full_name} — {self.location or 'N/A'}"
