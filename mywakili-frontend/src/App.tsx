@@ -8,6 +8,11 @@ import Home from './pages/Home';
 import Lawyers from './pages/Lawyers';
 import LawyerProfile from './pages/LawyerProfile';
 import LegalEducation from './pages/LegalEducation';
+import Constitution from './pages/Constitution';
+import Laws from './pages/Laws';
+import LawDetail from './pages/LawDetail';
+import Petitions from './pages/Petitions';
+import PetitionDetail from './pages/PetitionDetail';
 import Login from './pages/auth/Login';
 import Signup from './pages/auth/Signup';
 import About from './pages/About';
@@ -25,6 +30,11 @@ export default function App() {
           <Route path="/lawyers" element={<Lawyers />} />
           <Route path="/lawyers/:id" element={<LawyerProfile />} />
           <Route path="/legal-education" element={<LegalEducation />} />
+          <Route path="/constitution" element={<Constitution />} />
+          <Route path="/laws" element={<Laws />} />
+          <Route path="/laws/:id" element={<LawDetail />} />
+          <Route path="/petitions" element={<Petitions />} />
+          <Route path="/petitions/:id" element={<PetitionDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
