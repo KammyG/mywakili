@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import api from "../services/api";
 
 interface User {
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (token) {
       // Optionally fetch user profile
       api
-        .get("/users/profile/")
+        .get("users/profile/")
         .then((res) => {
           setUser(res.data);
         })
@@ -57,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await api.post("/token/", {
+      const response = await api.post("token/", {
         username,
         password,
       });
@@ -67,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem("refresh_token", refresh);
 
       // Fetch user profile
-      const userResponse = await api.get("/users/profile/");
+      const userResponse = await api.get("users/profile/");
       setUser(userResponse.data);
     } catch (error: any) {
       throw new Error(error.response?.data?.detail || "Login failed");
@@ -76,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (data: SignupData) => {
     try {
-      await api.post("/users/register/", data);
+      await api.post("users/register/", data);
       // Auto-login after signup
       await login(data.username, data.password);
     } catch (error: any) {

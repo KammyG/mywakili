@@ -17,7 +17,7 @@ export default function LegalEducation() {
       params.category = selectedCategory.toLowerCase().replace(' ', '_');
     }
 
-    api.get("/legal/articles/", { params })
+    api.get("legal/articles/", { params })
       .then(res => {
         const articlesData = res.data.results || res.data;
         setArticles(articlesData);
@@ -64,7 +64,8 @@ export default function LegalEducation() {
       summary: "Know your rights during police arrests and how to protect yourself legally.",
       category: "Criminal Law",
       icon: Shield,
-      color: "from-red-500 to-orange-500"
+      color: "from-red-500 to-orange-500",
+      isConstitution: false
     },
     { 
       id: 2, 
@@ -72,7 +73,8 @@ export default function LegalEducation() {
       summary: "How to file for child custody and what to expect during the legal process.",
       category: "Family Law",
       icon: Scale,
-      color: "from-pink-500 to-rose-500"
+      color: "from-pink-500 to-rose-500",
+      isConstitution: false
     },
     { 
       id: 3, 
@@ -80,7 +82,8 @@ export default function LegalEducation() {
       summary: "Understanding your rights as a property owner and how to handle disputes.",
       category: "Property Law",
       icon: FileText,
-      color: "from-green-500 to-emerald-500"
+      color: "from-green-500 to-emerald-500",
+      isConstitution: false
     },
     { 
       id: 4, 
@@ -88,7 +91,8 @@ export default function LegalEducation() {
       summary: "Essential information about employment contracts and your rights as an employee.",
       category: "Employment Law",
       icon: GraduationCap,
-      color: "from-blue-500 to-cyan-500"
+      color: "from-blue-500 to-cyan-500",
+      isConstitution: false
     },
     { 
       id: 5, 
@@ -96,7 +100,8 @@ export default function LegalEducation() {
       summary: "A comprehensive guide to the divorce process and legal requirements.",
       category: "Family Law",
       icon: FileText,
-      color: "from-purple-500 to-pink-500"
+      color: "from-purple-500 to-pink-500",
+      isConstitution: false
     },
     { 
       id: 6, 
@@ -104,7 +109,8 @@ export default function LegalEducation() {
       summary: "How to resolve land disputes through legal channels and mediation.",
       category: "Property Law",
       icon: Shield,
-      color: "from-indigo-500 to-blue-500"
+      color: "from-indigo-500 to-blue-500",
+      isConstitution: false
     }
   ];
 

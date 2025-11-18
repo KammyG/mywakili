@@ -1,25 +1,47 @@
-import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, Calendar, User } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, Link } from "react-router-dom";
+import { ArrowLeft, FileText, Calendar, User, AlertTriangle } from "lucide-react";
 import api from "../services/api";
-import { useAuth } from "../context/AuthContext";
+import { fallbackLaws } from "../data/legalContent";
 
 export default function LawDetail() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { id } = useParams<{ id: string }>();
   const [law, setLaw] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fallbackLaw = useMemo(
+    () => fallbackLaws.find((item) => String(item.id) === id),
+    [id]
+  );
 
   useEffect(() => {
+    if (!id) {
+      setLaw(null);
+      setError("Law not found");
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
-    api.get(`/legal/articles/${id}/`)
-      .then(res => setLaw(res.data))
+    setError("");
+
+    api.get(`legal/articles/${id}/`)
+      .then(res => {
+        setLaw(res.data);
+      })
       .catch(err => {
         console.error("Error fetching law:", err);
+        if (fallbackLaw) {
+          setLaw(fallbackLaw);
+          setError("Showing highlights while we reconnect to the live database.");
+        } else {
+          setLaw(null);
+          setError("We couldn't find that law. Please try another entry.");
+        }
       })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, fallbackLaw]);
 
   const formatContent = (content: string) => {
     return content
@@ -55,7 +77,7 @@ export default function LawDetail() {
   if (!law) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 mb-4">Law not found</p>
+        <p className="text-gray-600 mb-4">{error || "Law not found"}</p>
         <Link to="/laws" className="text-blue-600 hover:underline">Back to Laws</Link>
       </div>
     );
@@ -70,6 +92,13 @@ export default function LawDetail() {
         <ArrowLeft className="w-5 h-5" />
         Back to Laws
       </Link>
+
+      {error && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
 
       <div className="card p-8 md:p-12">
         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">

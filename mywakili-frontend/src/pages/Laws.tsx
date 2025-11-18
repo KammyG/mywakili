@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, FileText, ArrowRight, Calendar, User, Filter } from "lucide-react";
+import { Search, FileText, ArrowRight, Calendar, User, Filter, AlertTriangle } from "lucide-react";
 import api from "../services/api";
+import { fallbackLaws } from "../data/legalContent";
 
 export default function Laws() {
   const [laws, setLaws] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [usingFallback, setUsingFallback] = useState(false);
 
   const categories = [
     { value: "", label: "All Categories" },
@@ -21,21 +23,27 @@ export default function Laws() {
 
   useEffect(() => {
     setLoading(true);
+    setUsingFallback(false);
     const params: any = {};
     if (selectedCategory) params.category = selectedCategory;
     if (searchTerm) params.search = searchTerm;
 
-    api.get("/legal/articles/", { params })
+    api.get("legal/articles/", { params })
       .then(res => {
-        // Filter out the Constitution
         const articles = (res.data.results || res.data).filter(
           (a: any) => !a.is_constitution && !a.title.includes("Constitution")
         );
-        setLaws(articles);
+        if (articles.length === 0) {
+          setLaws(fallbackLaws);
+          setUsingFallback(true);
+        } else {
+          setLaws(articles);
+        }
       })
       .catch(err => {
         console.error("Error fetching laws:", err);
-        setLaws([]);
+        setLaws(fallbackLaws);
+        setUsingFallback(true);
       })
       .finally(() => setLoading(false));
   }, [selectedCategory, searchTerm]);
@@ -58,7 +66,7 @@ export default function Laws() {
       </div>
 
       {/* Search and Filter */}
-      <div className="card p-6">
+      <div className="card p-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -83,6 +91,12 @@ export default function Laws() {
             </select>
           </div>
         </div>
+        {usingFallback && (
+          <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-700">
+            <AlertTriangle className="w-4 h-4" />
+            Showing highlighted laws while we reconnect to the live database.
+          </div>
+        )}
       </div>
 
       {/* Results */}

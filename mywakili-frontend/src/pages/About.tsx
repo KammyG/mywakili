@@ -1,4 +1,4 @@
-import { Scale, Users, Target, Heart, Shield, BookOpen } from "lucide-react";
+import { Scale, Target, Heart, Shield, BookOpen } from "lucide-react";
 
 export default function About() {
   const values = [

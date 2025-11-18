@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { BookOpen, ArrowLeft, Calendar, User, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { BookOpen, ArrowLeft, Calendar, User, AlertTriangle } from "lucide-react";
 import api from "../services/api";
+import { fallbackConstitution } from "../data/legalContent";
 
 export default function Constitution() {
   const [article, setArticle] = useState<any>(null);
@@ -11,7 +12,7 @@ export default function Constitution() {
   useEffect(() => {
     setLoading(true);
     // Fetch the Constitution article
-    api.get("/legal/articles/", {
+    api.get("legal/articles/", {
       params: { search: "Constitution of Kenya" }
     })
       .then(res => {
@@ -19,11 +20,12 @@ export default function Constitution() {
         const constitution = articles.find((a: any) => 
           a.title.includes("Constitution") || a.is_constitution
         ) || articles[0];
-        setArticle(constitution);
+        setArticle(constitution || fallbackConstitution);
       })
       .catch(err => {
         console.error("Error fetching constitution:", err);
-        setError("Failed to load the Constitution. Please try again later.");
+        setError("Failed to load the live Constitution. Showing highlights instead.");
+        setArticle(fallbackConstitution);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -39,7 +41,7 @@ export default function Constitution() {
     );
   }
 
-  if (error || !article) {
+  if (!article) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 mb-4">{error || "Constitution not found"}</p>
@@ -80,6 +82,13 @@ export default function Constitution() {
         <ArrowLeft className="w-5 h-5" />
         Back to Legal Education
       </Link>
+
+      {error && (
+        <div className="mb-6 flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
 
       <div className="card p-8 md:p-12">
         <div className="flex items-center gap-4 mb-8 pb-6 border-b border-gray-200">

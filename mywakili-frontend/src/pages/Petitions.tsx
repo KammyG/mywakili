@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileSignature, Users, Calendar, CheckCircle, AlertCircle, ArrowRight, Search } from "lucide-react";
+import { FileSignature, Users, Calendar, CheckCircle, ArrowRight, Search } from "lucide-react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
@@ -17,7 +17,7 @@ export default function Petitions() {
     const params: any = { status: statusFilter };
     if (searchTerm) params.search = searchTerm;
 
-    api.get("/legal/petitions/", { params })
+    api.get("legal/petitions/", { params })
       .then(res => {
         setPetitions(res.data.results || res.data);
       })
@@ -35,7 +35,7 @@ export default function Petitions() {
     }
 
     try {
-      const response = await api.post(`/legal/petitions/${petitionId}/sign/`);
+      const response = await api.post(`legal/petitions/${petitionId}/sign/`);
       if (response.data.already_signed) {
         alert("You have already signed this petition.");
       } else {
