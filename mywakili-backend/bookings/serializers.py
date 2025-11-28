@@ -1,42 +1,55 @@
 from rest_framework import serializers
-from .models import Booking, AvailabilitySlot, Payment
-from lawyers.serializers import LawyerProfileListSerializer
-from lawyers.models import LawyerProfile
-from users.serializers import SimpleUserSerializer
+from .models import LawCategory, LawyerProfile
+from django.contrib.auth import get_user_model
 
+User = get_user_model()
 
-class AvailabilitySlotSerializer(serializers.ModelSerializer):
+class LawCategorySerializer(serializers.ModelSerializer):
     class Meta:
-        model = AvailabilitySlot
-        fields = "__all__"
+        model = LawCategory
+        fields = ("id", "name", "slug")
 
-
-class PaymentSerializer(serializers.ModelSerializer):
+class SimpleUserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Payment
-        fields = (
-            "id", "amount", "payment_method", "status", 
-            "transaction_id", "created_at", "completed_at"
-        )
-        read_only_fields = ["status", "transaction_id", "created_at", "completed_at"]
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
 
-
-class BookingSerializer(serializers.ModelSerializer):
+class LawyerProfileListSerializer(serializers.ModelSerializer):
     user = SimpleUserSerializer(read_only=True)
-    lawyer = LawyerProfileListSerializer(read_only=True)
-    lawyer_id = serializers.PrimaryKeyRelatedField(
-        queryset=LawyerProfile.objects.all(),
-        write_only=True,
-        source="lawyer",
-        required=False
-    )
-    payment = PaymentSerializer(read_only=True)
+    categories = LawCategorySerializer(many=True, read_only=True)
+    full_name = serializers.CharField(source="full_name", read_only=True)
+    name = serializers.SerializerMethodField()
+    specialty = serializers.SerializerMethodField()
 
     class Meta:
-        model = Booking
+        model = LawyerProfile
         fields = (
-            "id", "user", "lawyer", "lawyer_id", "schedule_time", 
-            "reason_for_booking", "status", "payment_status", 
-            "created_at", "payment"
+            "id", "user", "full_name", "name", "photo", "bio", "categories", 
+            "location", "years_experience", "languages", "consultation_fee", 
+            "rating", "verified", "specialty"
         )
-        read_only_fields = ["status", "payment_status", "user", "lawyer", "payment"]
+
+    def get_name(self, obj):
+        return obj.full_name
+
+    def get_specialty(self, obj):
+        if obj.categories.exists():
+            return obj.categories.first().name
+        return "General Law"
+
+class LawyerProfileDetailSerializer(LawyerProfileListSerializer):
+    # Include availability slots in detail view
+    availability = serializers.SerializerMethodField()
+    
+    def get_availability(self, obj):
+        from bookings.serializers import AvailabilitySlotSerializer
+        slots = obj.availability.all()
+        return AvailabilitySlotSerializer(slots, many=True).data
+
+class LawyerProfileCreateSerializer(serializers.ModelSerializer):
+    # create serializer expects categories ids
+    categories = serializers.PrimaryKeyRelatedField(many=True, queryset=LawCategory.objects.all(), required=False)
+
+    class Meta:
+        model = LawyerProfile
+        fields = ("photo", "bio", "categories", "location", "phone", "years_experience", "languages", "consultation_fee", "verified")
