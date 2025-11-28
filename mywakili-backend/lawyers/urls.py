@@ -4,7 +4,7 @@ from .views import LawCategoryViewSet, LawyerViewSet
 
 router = routers.DefaultRouter()
 router.register(r"categories", LawCategoryViewSet, basename="categories")
-router.register(r"lawyers", LawyerViewSet, basename="lawyers")
+router.register(r"", LawyerViewSet, basename="lawyers")
 
 urlpatterns = [
     path("", include(router.urls)),
