@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 from .models import Booking, AvailabilitySlot, Payment
 from .serializers import BookingSerializer, AvailabilitySlotSerializer, PaymentSerializer
 
@@ -29,7 +30,7 @@ class LawyerBookingsView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Booking.objects.filter(lawyer__lawyer=self.request.user)
+        return Booking.objects.filter(lawyer__user=self.request.user)
 
 
 # Lawyer Accept/Decline Booking
@@ -38,7 +39,7 @@ class UpdateBookingStatusView(APIView):
 
     def post(self, request, booking_id):
         try:
-            booking = Booking.objects.get(id=booking_id, lawyer__lawyer=request.user)
+            booking = Booking.objects.get(id=booking_id, lawyer__user=request.user)
         except Booking.DoesNotExist:
             return Response({"error": "Booking not found or unauthorized"}, status=404)
 
@@ -74,6 +75,12 @@ class CancelBookingView(APIView):
 class CreateAvailabilityView(generics.CreateAPIView):
     serializer_class = AvailabilitySlotSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if not hasattr(user, "lawyer_profile"):
+            raise PermissionDenied("Only lawyers can manage availability.")
+        serializer.save(lawyer=user.lawyer_profile)
 
 
 class LawyerAvailabilityList(generics.ListAPIView):
